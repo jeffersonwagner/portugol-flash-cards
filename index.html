@@ -1,0 +1,2314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards - Lógica de Programação Completo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .level-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .level-btn {
+            padding: 8px 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .level-btn.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        .level-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .score-number {
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+
+        .flashcard {
+            width: 450px;
+            height: 350px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: left;
+            overflow-y: auto;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            color: #333;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .card-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .card-back .card-title {
+            color: white;
+        }
+
+        .difficulty-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .difficulty-facil {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .difficulty-medio {
+            background: #FF9800;
+            color: white;
+        }
+
+        .difficulty-dificil {
+            background: #F44336;
+            color: white;
+        }
+
+        .card-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        .code-block {
+            background: rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            white-space: pre-line;
+            font-size: 0.9rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .card-back .code-block {
+            background: rgba(255,255,255,0.2);
+            border-left-color: white;
+        }
+
+        .hint-section {
+            background: rgba(255, 193, 7, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #FFC107;
+        }
+
+        .card-back .hint-section {
+            background: rgba(255,255,255,0.2);
+            border-left-color: white;
+        }
+
+        .explanation {
+            background: rgba(23, 162, 184, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .card-back .explanation {
+            background: rgba(255,255,255,0.2);
+            border-left-color: white;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #ff8c00);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            backdrop-filter: blur(10px);
+            min-width: 100px;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .completion-message {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .flashcard {
+                width: 320px;
+                height: 400px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .stats {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .level-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧠 Flashcards Portugol Completo</h1>
+        <p>45 exercícios progressivos para dominar a programação</p>
+    </div>
+
+    <div class="level-selector">
+        <button class="level-btn active" data-level="facil">🟢 Fácil (15 cards)</button>
+        <button class="level-btn" data-level="medio">🟡 Médio (15 cards)</button>
+        <button class="level-btn" data-level="dificil">🔴 Difícil (15 cards)</button>
+    </div>
+
+    <div class="score-display">
+        <div class="score-item">
+            <span class="score-number" id="total-score">0</span>
+            <span class="stat-label">Pontuação</span>
+        </div>
+        <div class="score-item">
+            <span class="score-number" id="streak">0</span>
+            <span class="stat-label">Sequência</span>
+        </div>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-info">
+            <span>Progresso do Nível</span>
+            <span id="progress-text">0/0 concluídos</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+
+    <div class="card-container">
+        <div class="flashcard" id="flashcard">
+            <div class="card-face card-front">
+                <div class="card-header">
+                    <div class="card-title" id="front-title">Carregando...</div>
+                    <div class="difficulty-badge" id="difficulty-badge">Fácil</div>
+                </div>
+                <div class="card-content" id="front-content">Preparando exercício...</div>
+            </div>
+            <div class="card-face card-back">
+                <div class="card-header">
+                    <div class="card-title" id="back-title">Solução</div>
+                    <div class="difficulty-badge" id="back-difficulty-badge">Fácil</div>
+                </div>
+                <div class="card-content" id="back-content">Resposta aqui...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-primary" id="flip-btn">🔄 Virar Carta</button>
+        <button class="btn btn-info" id="hint-btn">💡 Dica</button>
+        <button class="btn btn-success" id="correct-btn" disabled>✅ Acertei</button>
+        <button class="btn btn-warning" id="wrong-btn" disabled>❌ Errei</button>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-primary" id="prev-btn">⬅️ Anterior</button>
+        <button class="btn btn-primary" id="next-btn">➡️ Próximo</button>
+        <button class="btn btn-info" id="shuffle-btn">🔀 Embaralhar</button>
+    </div>
+
+    <div class="stats">
+        <div class="stat-item">
+            <span class="stat-number" id="current-card">1</span>
+            <span class="stat-label">Carta Atual</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number" id="correct-count">0</span>
+            <span class="stat-label">Acertos</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number" id="wrong-count">0</span>
+            <span class="stat-label">Erros</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number" id="accuracy">0%</span>
+            <span class="stat-label">Precisão</span>
+        </div>
+    </div>
+
+    <div class="completion-message" id="completion-message">
+        <h2>🎉 Nível Concluído!</h2>
+        <p id="completion-text">Parabéns! Você dominou este nível.</p>
+        <p>Pontuação final: <span id="final-score">0</span> pontos</p>
+    </div>
+
+    <script>
+        const flashcards = {
+            facil: [
+                {
+                    question: "Estrutura Básica do Programa",
+                    content: "Complete a estrutura básica de um programa em Portugol:",
+                    hint: "Todo programa precisa começar com 'programa', ter uma função 'inicio()' e terminar com chaves.",
+                    answer: "Estrutura Básica Completa",
+                    solution: `programa {
+    funcao inicio() {
+        // Seu código aqui
+    }
+}`,
+                    explanation: "Esta é a estrutura mínima de qualquer programa em Portugol. A palavra 'programa' inicia o código, e toda lógica fica dentro da função 'inicio()'.",
+                    difficulty: "facil",
+                    points: 10
+                },
+                {
+                    question: "Declaração de Variáveis Inteiras",
+                    content: "Como declarar uma variável inteira chamada 'idade' e inicializá-la com valor 25?",
+                    hint: "Use 'inteiro' para números inteiros e o operador '=' para atribuir valores.",
+                    answer: "Variável Inteira",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro idade = 25
+        // ou
+        inteiro idade
+        idade = 25
+    }
+}`,
+                    explanation: "Variáveis inteiras armazenam números sem casas decimais. Podem ser inicializadas na declaração ou em linha separada.",
+                    difficulty: "facil",
+                    points: 10
+                },
+                {
+                    question: "Declaração de Variáveis Reais",
+                    content: "Declare uma variável real chamada 'altura' e atribua o valor 1.75:",
+                    hint: "Use 'real' para números com casas decimais e ponto (.) como separador decimal.",
+                    answer: "Variável Real",
+                    solution: `programa {
+    funcao inicio() {
+        real altura = 1.75
+        escreva("Altura: ", altura, " metros")
+    }
+}`,
+                    explanation: "Variáveis reais armazenam números com casas decimais. Use ponto (.) como separador decimal, não vírgula.",
+                    difficulty: "facil",
+                    points: 10
+                },
+                {
+                    question: "Variáveis de Texto (Cadeia)",
+                    content: "Declare uma variável de texto chamada 'nome' e atribua seu nome:",
+                    hint: "Use 'cadeia' para textos e aspas duplas para delimitar strings.",
+                    answer: "Variável Cadeia",
+                    solution: `programa {
+    funcao inicio() {
+        cadeia nome = "João Silva"
+        escreva("Olá, ", nome, "!")
+    }
+}`,
+                    explanation: "Variáveis do tipo 'cadeia' armazenam textos. Sempre use aspas duplas para delimitar strings.",
+                    difficulty: "facil",
+                    points: 10
+                },
+                {
+                    question: "Variáveis Lógicas",
+                    content: "Declare uma variável lógica chamada 'aprovado' e defina como verdadeiro:",
+                    hint: "Use 'logico' para valores verdadeiro/falso. As palavras-chave são 'verdadeiro' e 'falso'.",
+                    answer: "Variável Lógica",
+                    solution: `programa {
+    funcao inicio() {
+        logico aprovado = verdadeiro
+        se (aprovado) {
+            escreva("Parabéns! Você foi aprovado!")
+        }
+    }
+}`,
+                    explanation: "Variáveis lógicas armazenam apenas dois valores: 'verdadeiro' ou 'falso'. São úteis para controle de fluxo.",
+                    difficulty: "facil",
+                    points: 15
+                },
+                {
+                    question: "Entrada de Dados - leia()",
+                    content: "Crie um programa que leia o nome do usuário e o armazene em uma variável:",
+                    hint: "Use 'leia(variavel)' para capturar dados digitados pelo usuário.",
+                    answer: "Entrada de Dados",
+                    solution: `programa {
+    funcao inicio() {
+        cadeia nome
+        escreva("Digite seu nome: ")
+        leia(nome)
+        escreva("Nome digitado: ", nome)
+    }
+}`,
+                    explanation: "A função 'leia()' captura dados do teclado e armazena na variável especificada. Sempre declare a variável antes de usar.",
+                    difficulty: "facil",
+                    points: 15
+                },
+                {
+                    question: "Saída de Dados - escreva()",
+                    content: "Exiba uma mensagem de boas-vindas concatenando texto e variável:",
+                    hint: "Use 'escreva()' com vírgulas para separar textos e variáveis.",
+                    answer: "Saída de Dados",
+                    solution: `programa {
+    funcao inicio() {
+        cadeia usuario = "Maria"
+        escreva("Bem-vinda ao sistema, ", usuario, "!")
+        escreva("Hoje é um ótimo dia para programar!")
+    }
+}`,
+                    explanation: "A função 'escreva()' exibe informações na tela. Use vírgulas para concatenar textos e variáveis.",
+                    difficulty: "facil",
+                    points: 15
+                },
+                {
+                    question: "Operações Matemáticas Básicas",
+                    content: "Calcule e exiba a soma de dois números informados pelo usuário:",
+                    hint: "Use os operadores +, -, *, / para operações matemáticas básicas.",
+                    answer: "Operações Matemáticas",
+                    solution: `programa {
+    funcao inicio() {
+        real num1, num2, soma
+        escreva("Digite o primeiro número: ")
+        leia(num1)
+        escreva("Digite o segundo número: ")
+        leia(num2)
+        soma = num1 + num2
+        escreva("A soma é: ", soma)
+    }
+}`,
+                    explanation: "Operadores matemáticos: + (soma), - (subtração), * (multiplicação), / (divisão). O resultado deve ser armazenado em uma variável.",
+                    difficulty: "facil",
+                    points: 20
+                },
+                {
+                    question: "Cálculo de Área do Retângulo",
+                    content: "Crie um programa que calcule a área de um retângulo (base × altura):",
+                    hint: "Área = base * altura. Leia os valores e multiplique-os.",
+                    answer: "Área do Retângulo",
+                    solution: `programa {
+    funcao inicio() {
+        real base, altura, area
+        escreva("=== CÁLCULO DA ÁREA DO RETÂNGULO ===\\n")
+        escreva("Digite a base: ")
+        leia(base)
+        escreva("Digite a altura: ")
+        leia(altura)
+        area = base * altura
+        escreva("A área do retângulo é: ", area, " m²")
+    }
+}`,
+                    explanation: "Para calcular área, multiplique base por altura. Use '\\n' para quebrar linhas na saída.",
+                    difficulty: "facil",
+                    points: 20
+                },
+                {
+                    question: "Conversão de Temperatura",
+                    content: "Converta temperatura de Celsius para Fahrenheit (F = C * 9/5 + 32):",
+                    hint: "Fórmula: Fahrenheit = Celsius * 9 / 5 + 32",
+                    answer: "Conversão de Temperatura",
+                    solution: `programa {
+    funcao inicio() {
+        real celsius, fahrenheit
+        escreva("Digite a temperatura em Celsius: ")
+        leia(celsius)
+        fahrenheit = celsius * 9 / 5 + 32
+        escreva(celsius, "°C equivale a ", fahrenheit, "°F")
+    }
+}`,
+                    explanation: "Conversões seguem fórmulas matemáticas específicas. Respeite a ordem das operações (multiplicação e divisão antes de soma).",
+                    difficulty: "facil",
+                    points: 20
+                },
+                {
+                    question: "Estrutura Condicional Simples",
+                    content: "Verifique se um número é positivo usando estrutura condicional:",
+                    hint: "Use 'se (condição) { }' para executar código apenas quando a condição for verdadeira.",
+                    answer: "Condicional Simples",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro numero
+        escreva("Digite um número: ")
+        leia(numero)
+        se (numero > 0) {
+            escreva("O número ", numero, " é positivo!")
+        }
+        escreva("Fim do programa.")
+    }
+}`,
+                    explanation: "A estrutura 'se' executa o bloco de código apenas quando a condição é verdadeira. Use operadores de comparação: >, <, >=, <=, ==, !=",
+                    difficulty: "facil",
+                    points: 25
+                },
+                {
+                    question: "Estrutura Se-Senão",
+                    content: "Determine se um número é par ou ímpar:",
+                    hint: "Use o operador % (módulo) para verificar o resto da divisão por 2.",
+                    answer: "Par ou Ímpar",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro numero
+        escreva("Digite um número: ")
+        leia(numero)
+        se (numero % 2 == 0) {
+            escreva("O número ", numero, " é PAR")
+        } senao {
+            escreva("O número ", numero, " é ÍMPAR")
+        }
+    }
+}`,
+                    explanation: "O operador % retorna o resto da divisão. Se numero % 2 == 0, o número é par, senão é ímpar.",
+                    difficulty: "facil",
+                    points: 25
+                },
+                {
+                    question: "Comparação de Números",
+                    content: "Compare dois números e informe qual é o maior:",
+                    hint: "Use 'se-senao se-senao' para comparar e tratar empate.",
+                    answer: "Maior Número",
+                    solution: `programa {
+    funcao inicio() {
+        real num1, num2
+        escreva("Digite o primeiro número: ")
+        leia(num1)
+        escreva("Digite o segundo número: ")
+        leia(num2)
+        
+        se (num1 > num2) {
+            escreva("O maior número é: ", num1)
+        } senao se (num2 > num1) {
+            escreva("O maior número é: ", num2)
+        } senao {
+            escreva("Os números são iguais: ", num1)
+        }
+    }
+}`,
+                    explanation: "Use múltiplas condições para cobrir todos os casos possíveis: maior, menor e igualdade.",
+                    difficulty: "facil",
+                    points: 25
+                },
+                {
+                    question: "Calculadora Simples",
+                    content: "Crie uma calculadora que some, subtraia, multiplique ou divida dois números:",
+                    hint: "Use 'escolha-caso' para selecionar a operação baseada na escolha do usuário.",
+                    answer: "Calculadora Básica",
+                    solution: `programa {
+    funcao inicio() {
+        real num1, num2, resultado
+        inteiro operacao
+        
+        escreva("=== CALCULADORA SIMPLES ===\\n")
+        escreva("Digite o primeiro número: ")
+        leia(num1)
+        escreva("Digite o segundo número: ")
+        leia(num2)
+        
+        escreva("Escolha a operação:\\n")
+        escreva("1 - Soma\\n2 - Subtração\\n3 - Multiplicação\\n4 - Divisão\\n")
+        leia(operacao)
+        
+        escolha (operacao) {
+            caso 1: resultado = num1 + num2
+                   escreva("Resultado: ", resultado) pare
+            caso 2: resultado = num1 - num2
+                   escreva("Resultado: ", resultado) pare
+            caso 3: resultado = num1 * num2
+                   escreva("Resultado: ", resultado) pare
+            caso 4: se (num2 != 0) {
+                       resultado = num1 / num2
+                       escreva("Resultado: ", resultado)
+                   } senao {
+                       escreva("Erro: Divisão por zero!")
+                   } pare
+            caso contrario: escreva("Operação inválida!")
+        }
+    }
+}`,
+                    explanation: "A estrutura 'escolha-caso' é ideal para múltiplas opções. Sempre trate casos especiais como divisão por zero.",
+                    difficulty: "facil",
+                    points: 30
+                },
+                {
+                    question: "Validação de Idade",
+                    content: "Classifique uma pessoa por faixa etária: criança (0-12), adolescente (13-17), adulto (18-64), idoso (65+):",
+                    hint: "Use múltiplas condições 'se-senao se' para classificar por faixas de idade.",
+                    answer: "Classificação Etária",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro idade
+        escreva("Digite sua idade: ")
+        leia(idade)
+        
+        se (idade < 0) {
+            escreva("Idade inválida!")
+        } senao se (idade <= 12) {
+            escreva("Classificação: CRIANÇA")
+        } senao se (idade <= 17) {
+            escreva("Classificação: ADOLESCENTE")
+        } senao se (idade <= 64) {
+            escreva("Classificação: ADULTO")
+        } senao {
+            escreva("Classificação: IDOSO")
+        }
+    }
+}`,
+                    explanation: "Sempre valide entradas do usuário. Use condições em sequência para classificar por faixas de valores.",
+                    difficulty: "facil",
+                    points: 30
+                }
+            ],
+            medio: [
+                {
+                    question: "Laço Para - Contagem Simples",
+                    content: "Use um laço PARA para exibir os números de 1 a 10:",
+                    hint: "Estrutura: para (inicialização; condição; incremento). Use i++ para incrementar.",
+                    answer: "Contagem 1 a 10",
+                    solution: `programa {
+    funcao inicio() {
+        escreva("Números de 1 a 10:\\n")
+        para (inteiro i = 1; i <= 10; i++) {
+            escreva(i, " ")
+        }
+        escreva("\\nFim da contagem!")
+    }
+}`,
+                    explanation: "O laço 'para' é ideal quando sabemos quantas repetições fazer. A estrutura é: inicialização, condição, incremento.",
+                    difficulty: "medio",
+                    points: 25
+                },
+                {
+                    question: "Tabuada Completa",
+                    content: "Gere a tabuada de um número informado pelo usuário (de 1 a 10):",
+                    hint: "Leia o número e use um laço para multiplicar de 1 a 10.",
+                    answer: "Tabuada Personalizada",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro numero
+        escreva("Digite um número para ver sua tabuada: ")
+        leia(numero)
+        
+        escreva("\\n=== TABUADA DO ", numero, " ===\\n")
+        para (inteiro i = 1; i <= 10; i++) {
+            escreva(numero, " x ", i, " = ", numero * i, "\\n")
+        }
+    }
+}`,
+                    explanation: "Combine entrada de dados com laços para criar programas interativos. Use formatação para melhor apresentação.",
+                    difficulty: "medio",
+                    points: 30
+                },
+                {
+                    question: "Laço Enquanto - Soma Acumulativa",
+                    content: "Leia números até que o usuário digite 0, mostrando a soma total:",
+                    hint: "Use 'enquanto' para repetir enquanto o número for diferente de 0.",
+                    answer: "Soma com Enquanto",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro numero, soma = 0, contador = 0
+        
+        escreva("Digite números para somar (0 para parar):\\n")
+        escreva("Número: ")
+        leia(numero)
+        
+        enquanto (numero != 0) {
+            soma = soma + numero
+            contador++
+            escreva("Número: ")
+            leia(numero)
+        }
+        
+        escreva("\\nTotal de números digitados: ", contador)
+        escreva("\\nSoma total: ", soma)
+        se (contador > 0) {
+            escreva("\\nMédia: ", soma / contador)
+        }
+    }
+}`,
+                    explanation: "O laço 'enquanto' continua até a condição ser falsa. Útil quando não sabemos quantas repetições serão necessárias.",
+                    difficulty: "medio",
+                    points: 35
+                },
+                {
+                    question: "Laço Faça-Enquanto",
+                    content: "Crie um menu que execute pelo menos uma vez usando faça-enquanto:",
+                    hint: "Use 'faca { } enquanto (condição)' para executar pelo menos uma vez.",
+                    answer: "Menu com Faça-Enquanto",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro opcao
+        
+        faca {
+            escreva("\\n=== MENU PRINCIPAL ===\\n")
+            escreva("1 - Saudação\\n")
+            escreva("2 - Calculadora\\n")
+            escreva("3 - Data atual\\n")
+            escreva("0 - Sair\\n")
+            escreva("Escolha uma opção: ")
+            leia(opcao)
+            
+            escolha (opcao) {
+                caso 1: escreva("Olá! Bem-vindo ao programa!\\n") pare
+                caso 2: escreva("Calculadora em desenvolvimento...\\n") pare
+                caso 3: escreva("Hoje é um ótimo dia para programar!\\n") pare
+                caso 0: escreva("Saindo do programa...\\n") pare
+                caso contrario: escreva("Opção inválida! Tente novamente.\\n")
+            }
+        } enquanto (opcao != 0)
+        
+        escreva("Programa finalizado!")
+    }
+}`,
+                    explanation: "O laço 'faca-enquanto' executa o bloco pelo menos uma vez, depois verifica a condição. Ideal para menus.",
+                    difficulty: "medio",
+                    points: 40
+                },
+                {
+                    question: "Vetores - Declaração e Preenchimento",
+                    content: "Declare um vetor de 5 números inteiros, preencha-o e exiba todos os valores:",
+                    hint: "Use 'inteiro vetor[tamanho]' para declarar. Índices vão de 0 a tamanho-1.",
+                    answer: "Vetor Básico",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro numeros[5]
+        
+        escreva("Digite 5 números:\\n")
+        para (inteiro i = 0; i < 5; i++) {
+            escreva("Número ", i + 1, ": ")
+            leia(numeros[i])
+        }
+        
+        escreva("\\nNúmeros digitados:\\n")
+        para (inteiro i = 0; i < 5; i++) {
+            escreva("Posição ", i, ": ", numeros[i], "\\n")
+        }
+    }
+}`,
+                    explanation: "Vetores armazenam múltiplos valores do mesmo tipo. Índices começam em 0. Use laços para percorrer elementos.",
+                    difficulty: "medio",
+                    points: 35
+                },
+                {
+                    question: "Busca em Vetor",
+                    content: "Procure um número específico em um vetor e informe se foi encontrado:",
+                    hint: "Use um laço para percorrer o vetor e uma variável lógica para controlar se encontrou.",
+                    answer: "Busca Linear",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro numeros[5] = {10, 25, 30, 45, 50}
+        inteiro procurar, posicao = -1
+        
+        escreva("Vetor: 10, 25, 30, 45, 50\\n")
+        escreva("Digite o número a procurar: ")
+        leia(procurar)
+        
+        para (inteiro i = 0; i < 5; i++) {
+            se (numeros[i] == procurar) {
+                posicao = i
+                pare
+            }
+        }
+        
+        se (posicao != -1) {
+            escreva("Número ", procurar, " encontrado na posição ", posicao)
+        } senao {
+            escreva("Número ", procurar, " não encontrado no vetor")
+        }
+    }
+}`,
+                    explanation: "Busca linear percorre o vetor elemento por elemento. Use 'pare' para sair do laço quando encontrar.",
+                    difficulty: "medio",
+                    points: 40
+                },
+                {
+                    question: "Maior e Menor Elemento",
+                    content: "Encontre o maior e menor número em um vetor:",
+                    hint: "Inicialize maior e menor com o primeiro elemento, depois compare com os demais.",
+                    answer: "Maior e Menor",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro numeros[6]
+        inteiro maior, menor
+        
+        escreva("Digite 6 números:\\n")
+        para (inteiro i = 0; i < 6; i++) {
+            escreva("Número ", i + 1, ": ")
+            leia(numeros[i])
+        }
+        
+        maior = numeros[0]
+        menor = numeros[0]
+        
+        para (inteiro i = 1; i < 6; i++) {
+            se (numeros[i] > maior) {
+                maior = numeros[i]
+            }
+            se (numeros[i] < menor) {
+                menor = numeros[i]
+            }
+        }
+        
+        escreva("\\nMaior número: ", maior)
+        escreva("\\nMenor número: ", menor)
+        escreva("\\nDiferença: ", maior - menor)
+    }
+}`,
+                    explanation: "Inicialize maior e menor com o primeiro elemento, depois compare com os restantes usando laços.",
+                    difficulty: "medio",
+                    points: 40
+                },
+                {
+                    question: "Contagem de Elementos",
+                    content: "Conte quantos números pares e ímpares existem em um vetor:",
+                    hint: "Use contadores e o operador % para verificar se é par ou ímpar.",
+                    answer: "Contagem Par/Ímpar",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro numeros[8]
+        inteiro pares = 0, impares = 0
+        
+        escreva("Digite 8 números:\\n")
+        para (inteiro i = 0; i < 8; i++) {
+            escreva("Número ", i + 1, ": ")
+            leia(numeros[i])
+            
+            se (numeros[i] % 2 == 0) {
+                pares++
+            } senao {
+                impares++
+            }
+        }
+        
+        escreva("\\n=== RESULTADO ===\\n")
+        escreva("Números pares: ", pares, "\\n")
+        escreva("Números ímpares: ", impares, "\\n")
+        escreva("Total: ", pares + impares, " números")
+    }
+}`,
+                    explanation: "Use contadores para estatísticas. Incremente durante a leitura para otimizar o código.",
+                    difficulty: "medio",
+                    points: 40
+                },
+                {
+                    question: "Inversão de Vetor",
+                    content: "Leia um vetor e exiba seus elementos na ordem inversa:",
+                    hint: "Leia normalmente, depois exiba do último índice para o primeiro.",
+                    answer: "Vetor Invertido",
+                    solution: `programa {
+    funcao inicio() {
+        cadeia palavras[4]
+        
+        escreva("Digite 4 palavras:\\n")
+        para (inteiro i = 0; i < 4; i++) {
+            escreva("Palavra ", i + 1, ": ")
+            leia(palavras[i])
+        }
+        
+        escreva("\\nPalavras na ordem original:\\n")
+        para (inteiro i = 0; i < 4; i++) {
+            escreva(palavras[i], " ")
+        }
+        
+        escreva("\\n\\nPalavras na ordem inversa:\\n")
+        para (inteiro i = 3; i >= 0; i--) {
+            escreva(palavras[i], " ")
+        }
+    }
+}`,
+                    explanation: "Para inverter, percorra o vetor do último índice (tamanho-1) até 0 usando decremento (i--).",
+                    difficulty: "medio",
+                    points: 35
+                },
+                {
+                    question: "Média de Notas",
+                    content: "Calcule a média de 4 notas e determine se o aluno foi aprovado (média ≥ 7.0):",
+                    hint: "Some todas as notas, divida por 4 e compare com 7.0 para aprovação.",
+                    answer: "Sistema de Notas",
+                    solution: `programa {
+    funcao inicio() {
+        real notas[4], soma = 0.0, media
+        
+        escreva("=== SISTEMA DE NOTAS ===\\n")
+        para (inteiro i = 0; i < 4; i++) {
+            escreva("Digite a ", i + 1, "ª nota: ")
+            leia(notas[i])
+            soma = soma + notas[i]
+        }
+        
+        media = soma / 4
+        
+        escreva("\\n=== BOLETIM ===\\n")
+        para (inteiro i = 0; i < 4; i++) {
+            escreva("Nota ", i + 1, ": ", notas[i], "\\n")
+        }
+        
+        escreva("Média: ", media, "\\n")
+        
+        se (media >= 7.0) {
+            escreva("Situação: APROVADO! 🎉")
+        } senao se (media >= 5.0) {
+            escreva("Situação: RECUPERAÇÃO 📚")
+        } senao {
+            escreva("Situação: REPROVADO 😞")
+        }
+    }
+}`,
+                    explanation: "Calcule médias somando todos os valores e dividindo pela quantidade. Use condições para classificar resultados.",
+                    difficulty: "medio",
+                    points: 45
+                },
+                {
+                    question: "Função Simples - Saudação",
+                    content: "Crie uma função que receba um nome e exiba uma saudação personalizada:",
+                    hint: "Declare a função fora de inicio() com 'funcao nome_funcao(parametros)'.",
+                    answer: "Função de Saudação",
+                    solution: `programa {
+    funcao saudar(cadeia nome) {
+        escreva("Olá, ", nome, "! Seja bem-vindo(a)!\\n")
+        escreva("Esperamos que tenha um ótimo dia! 😊\\n")
+    }
+    
+    funcao inicio() {
+        cadeia usuario
+        
+        escreva("Digite seu nome: ")
+        leia(usuario)
+        
+        escreva("\\n")
+        saudar(usuario)
+        saudar("Programador")
+    }
+}`,
+                    explanation: "Funções permitem reutilizar código. Declare fora de inicio() e chame passando os parâmetros necessários.",
+                    difficulty: "medio",
+                    points: 40
+                },
+                {
+                    question: "Função com Retorno - Área do Círculo",
+                    content: "Crie uma função que calcule e retorne a área de um círculo (π × r²):",
+                    hint: "Use 'funcao real nome()' para retornar um valor real. Use 'retorne' para devolver o resultado.",
+                    answer: "Função Área Círculo",
+                    solution: `programa {
+    funcao real calcular_area_circulo(real raio) {
+        real pi = 3.14159
+        real area = pi * raio * raio
+        retorne area
+    }
+    
+    funcao inicio() {
+        real raio, area
+        
+        escreva("=== CÁLCULO DA ÁREA DO CÍRCULO ===\\n")
+        escreva("Digite o raio: ")
+        leia(raio)
+        
+        area = calcular_area_circulo(raio)
+        
+        escreva("\\nRaio: ", raio, " metros")
+        escreva("\\nÁrea: ", area, " m²")
+    }
+}`,
+                    explanation: "Funções com retorno devem especificar o tipo de retorno e usar 'retorne' para devolver o valor calculado.",
+                    difficulty: "medio",
+                    points: 45
+                },
+                {
+                    question: "Validação com Função",
+                    content: "Crie uma função que valide se um número está entre 1 e 100:",
+                    hint: "Função deve retornar verdadeiro/falso. Use operadores lógicos 'e' para combinar condições.",
+                    answer: "Função de Validação",
+                    solution: `programa {
+    funcao logico validar_numero(inteiro num) {
+        se (num >= 1 e num <= 100) {
+            retorne verdadeiro
+        } senao {
+            retorne falso
+        }
+    }
+    
+    funcao inicio() {
+        inteiro numero
+        
+        faca {
+            escreva("Digite um número entre 1 e 100: ")
+            leia(numero)
+            
+            se (validar_numero(numero)) {
+                escreva("Número válido: ", numero, "\\n")
+                pare
+            } senao {
+                escreva("Número inválido! Tente novamente.\\n")
+            }
+        } enquanto (verdadeiro)
+        
+        escreva("Obrigado por usar o programa!")
+    }
+}`,
+                    explanation: "Funções de validação retornam verdadeiro/falso. Use operadores lógicos: 'e' (AND), 'ou' (OR), 'nao' (NOT).",
+                    difficulty: "medio",
+                    points: 50
+                },
+                {
+                    question: "Sistema de Login Simples",
+                    content: "Crie um sistema que valide usuário e senha com 3 tentativas:",
+                    hint: "Use um contador de tentativas e laço enquanto. Compare strings com ==.",
+                    answer: "Sistema de Login",
+                    solution: `programa {
+    funcao inicio() {
+        cadeia usuario_correto = "admin"
+        cadeia senha_correta = "123456"
+        cadeia usuario, senha
+        inteiro tentativas = 0
+        logico logado = falso
+        
+        escreva("=== SISTEMA DE LOGIN ===\\n")
+        
+        enquanto (tentativas < 3 e nao logado) {
+            escreva("\\nTentativa ", tentativas + 1, " de 3")
+            escreva("\\nUsuário: ")
+            leia(usuario)
+            escreva("Senha: ")
+            leia(senha)
+            
+            se (usuario == usuario_correto e senha == senha_correta) {
+                logado = verdadeiro
+                escreva("\\n✅ Login realizado com sucesso!")
+                escreva("\\nBem-vindo ao sistema, ", usuario, "!")
+            } senao {
+                tentativas++
+                se (tentativas < 3) {
+                    escreva("\\n❌ Usuário ou senha incorretos!")
+                }
+            }
+        }
+        
+        se (nao logado) {
+            escreva("\\n🔒 Acesso bloqueado! Muitas tentativas incorretas.")
+        }
+    }
+}`,
+                    explanation: "Sistemas de login usam contadores de tentativas e validação de strings. Combine condições com operadores lógicos.",
+                    difficulty: "medio",
+                    points: 55
+                }
+            ],
+            dificil: [
+                {
+                    question: "Algoritmo de Ordenação - Bubble Sort",
+                    content: "Implemente o algoritmo Bubble Sort para ordenar um vetor de 6 números:",
+                    hint: "Compare elementos adjacentes e troque se estiverem fora de ordem. Use laços aninhados.",
+                    answer: "Bubble Sort Completo",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro vetor[6]
+        inteiro temp, trocas
+        
+        escreva("Digite 6 números para ordenar:\\n")
+        para (inteiro i = 0; i < 6; i++) {
+            escreva("Número ", i + 1, ": ")
+            leia(vetor[i])
+        }
+        
+        escreva("\\nVetor original: ")
+        para (inteiro i = 0; i < 6; i++) {
+            escreva(vetor[i], " ")
+        }
+        
+        // Bubble Sort
+        para (inteiro i = 0; i < 5; i++) {
+            trocas = 0
+            para (inteiro j = 0; j < 5 - i; j++) {
+                se (vetor[j] > vetor[j + 1]) {
+                    temp = vetor[j]
+                    vetor[j] = vetor[j + 1]
+                    vetor[j + 1] = temp
+                    trocas++
+                }
+            }
+            se (trocas == 0) pare // Otimização: se não houve trocas, já está ordenado
+        }
+        
+        escreva("\\nVetor ordenado: ")
+        para (inteiro i = 0; i < 6; i++) {
+            escreva(vetor[i], " ")
+        }
+    }
+}`,
+                    explanation: "Bubble Sort compara pares adjacentes e os troca se estiverem fora de ordem. Otimize parando quando não houver trocas.",
+                    difficulty: "dificil",
+                    points: 60
+                },
+                {
+                    question: "Matriz Bidimensional - Operações Básicas",
+                    content: "Crie uma matriz 3x3, preencha-a e calcule a soma de cada linha:",
+                    hint: "Use dois índices [linha][coluna]. Laços aninhados para percorrer matriz.",
+                    answer: "Matriz com Somas",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro matriz[3][3]
+        inteiro soma_linha
+        
+        escreva("=== PREENCHIMENTO DA MATRIZ 3x3 ===\\n")
+        para (inteiro i = 0; i < 3; i++) {
+            para (inteiro j = 0; j < 3; j++) {
+                escreva("Elemento [", i, "][", j, "]: ")
+                leia(matriz[i][j])
+            }
+        }
+        
+        escreva("\\n=== MATRIZ COMPLETA ===\\n")
+        para (inteiro i = 0; i < 3; i++) {
+            para (inteiro j = 0; j < 3; j++) {
+                escreva(matriz[i][j], "\\t")
+            }
+            escreva("\\n")
+        }
+        
+        escreva("\\n=== SOMA DAS LINHAS ===\\n")
+        para (inteiro i = 0; i < 3; i++) {
+            soma_linha = 0
+            para (inteiro j = 0; j < 3; j++) {
+                soma_linha = soma_linha + matriz[i][j]
+            }
+            escreva("Linha ", i + 1, ": ", soma_linha, "\\n")
+        }
+    }
+}`,
+                    explanation: "Matrizes são vetores bidimensionais. Use laços aninhados: externo para linhas, interno para colunas.",
+                    difficulty: "dificil",
+                    points: 65
+                },
+                {
+                    question: "Recursão - Fatorial",
+                    content: "Implemente uma função recursiva para calcular o fatorial de um número:",
+                    hint: "Fatorial: n! = n × (n-1)!. Caso base: 0! = 1. A função chama a si mesma.",
+                    answer: "Fatorial Recursivo",
+                    solution: `programa {
+    funcao inteiro fatorial(inteiro n) {
+        se (n <= 1) {
+            retorne 1
+        } senao {
+            retorne n * fatorial(n - 1)
+        }
+    }
+    
+    funcao inicio() {
+        inteiro numero, resultado
+        
+        escreva("Digite um número para calcular o fatorial: ")
+        leia(numero)
+        
+        se (numero < 0) {
+            escreva("Fatorial não existe para números negativos!")
+        } senao {
+            resultado = fatorial(numero)
+            escreva("\\n", numero, "! = ", resultado)
+            
+            // Mostrando o cálculo passo a passo
+            escreva("\\n\\nCálculo: ")
+            para (inteiro i = numero; i >= 1; i--) {
+                escreva(i)
+                se (i > 1) escreva(" × ")
+            }
+            escreva(" = ", resultado)
+        }
+    }
+}`,
+                    explanation: "Recursão: função que chama a si mesma. Sempre defina um caso base para evitar loops infinitos.",
+                    difficulty: "dificil",
+                    points: 70
+                },
+                {
+                    question: "Sequência de Fibonacci Recursiva",
+                    content: "Implemente Fibonacci recursivo: F(n) = F(n-1) + F(n-2), F(0)=0, F(1)=1:",
+                    hint: "Dois casos base: F(0)=0 e F(1)=1. Para n>1, some os dois anteriores.",
+                    answer: "Fibonacci Recursivo",
+                    solution: `programa {
+    funcao inteiro fibonacci(inteiro n) {
+        se (n <= 1) {
+            retorne n
+        } senao {
+            retorne fibonacci(n - 1) + fibonacci(n - 2)
+        }
+    }
+    
+    funcao inicio() {
+        inteiro termos
+        
+        escreva("Quantos termos da sequência Fibonacci deseja ver? ")
+        leia(termos)
+        
+        se (termos <= 0) {
+            escreva("Número de termos deve ser positivo!")
+        } senao {
+            escreva("\\nSequência de Fibonacci com ", termos, " termos:\\n")
+            
+            para (inteiro i = 0; i < termos; i++) {
+                escreva("F(", i, ") = ", fibonacci(i))
+                se (i < termos - 1) escreva(", ")
+            }
+            
+            escreva("\\n\\nÚltimo termo: F(", termos - 1, ") = ", fibonacci(termos - 1))
+        }
+    }
+}`,
+                    explanation: "Fibonacci recursivo é elegante mas ineficiente para números grandes devido às chamadas repetidas.",
+                    difficulty: "dificil",
+                    points: 75
+                },
+                {
+                    question: "Busca Binária",
+                    content: "Implemente busca binária em um vetor ordenado:",
+                    hint: "Compare com elemento do meio. Se menor, busque na metade esquerda; se maior, na direita.",
+                    answer: "Busca Binária Eficiente",
+                    solution: `programa {
+    funcao inteiro busca_binaria(inteiro vetor[], inteiro tamanho, inteiro valor) {
+        inteiro inicio = 0, fim = tamanho - 1, meio
+        
+        enquanto (inicio <= fim) {
+            meio = (inicio + fim) / 2
+            
+            se (vetor[meio] == valor) {
+                retorne meio
+            } senao se (vetor[meio] < valor) {
+                inicio = meio + 1
+            } senao {
+                fim = meio - 1
+            }
+        }
+        retorne -1 // Não encontrado
+    }
+    
+    funcao inicio() {
+        inteiro numeros[8] = {2, 5, 8, 12, 16, 23, 38, 45}
+        inteiro procurar, resultado
+        
+        escreva("Vetor ordenado: ")
+        para (inteiro i = 0; i < 8; i++) {
+            escreva(numeros[i], " ")
+        }
+        
+        escreva("\\n\\nDigite o número a procurar: ")
+        leia(procurar)
+        
+        resultado = busca_binaria(numeros, 8, procurar)
+        
+        se (resultado != -1) {
+            escreva("\\n✅ Número ", procurar, " encontrado na posição ", resultado)
+        } senao {
+            escreva("\\n❌ Número ", procurar, " não encontrado no vetor")
+        }
+    }
+}`,
+                    explanation: "Busca binária é eficiente O(log n) mas requer vetor ordenado. Divide o espaço de busca pela metade a cada iteração.",
+                    difficulty: "dificil",
+                    points: 80
+                },
+                {
+                    question: "Ordenação por Seleção (Selection Sort)",
+                    content: "Implemente o algoritmo Selection Sort:",
+                    hint: "Encontre o menor elemento e coloque na primeira posição, depois o segundo menor, etc.",
+                    answer: "Selection Sort",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro vetor[7]
+        inteiro menor_indice, temp
+        
+        escreva("Digite 7 números para ordenar:\\n")
+        para (inteiro i = 0; i < 7; i++) {
+            escreva("Número ", i + 1, ": ")
+            leia(vetor[i])
+        }
+        
+        escreva("\\nVetor original: ")
+        para (inteiro i = 0; i < 7; i++) {
+            escreva(vetor[i], " ")
+        }
+        
+        // Selection Sort
+        para (inteiro i = 0; i < 6; i++) {
+            menor_indice = i
+            
+            // Encontra o menor elemento no restante do vetor
+            para (inteiro j = i + 1; j < 7; j++) {
+                se (vetor[j] < vetor[menor_indice]) {
+                    menor_indice = j
+                }
+            }
+            
+            // Troca o menor elemento com o elemento atual
+            se (menor_indice != i) {
+                temp = vetor[i]
+                vetor[i] = vetor[menor_indice]
+                vetor[menor_indice] = temp
+            }
+        }
+        
+        escreva("\\nVetor ordenado: ")
+        para (inteiro i = 0; i < 7; i++) {
+            escreva(vetor[i], " ")
+        }
+    }
+}`,
+                    explanation: "Selection Sort encontra o menor elemento e o coloca na posição correta. Repete para todas as posições.",
+                    difficulty: "dificil",
+                    points: 75
+                },
+                {
+                    question: "Matriz - Diagonal Principal e Secundária",
+                    content: "Calcule a soma da diagonal principal e secundária de uma matriz 4x4:",
+                    hint: "Diagonal principal: [i][i]. Diagonal secundária: [i][n-1-i].",
+                    answer: "Diagonais da Matriz",
+                    solution: `programa {
+    funcao inicio() {
+        inteiro matriz[4][4]
+        inteiro soma_principal = 0, soma_secundaria = 0
+        
+        escreva("=== MATRIZ 4x4 ===\\n")
+        para (inteiro i = 0; i < 4; i++) {
+            para (inteiro j = 0; j < 4; j++) {
+                escreva("Elemento [", i, "][", j, "]: ")
+                leia(matriz[i][j])
+            }
+        }
+        
+        escreva("\\n=== MATRIZ COMPLETA ===\\n")
+        para (inteiro i = 0; i < 4; i++) {
+            para (inteiro j = 0; j < 4; j++) {
+                escreva(matriz[i][j], "\\t")
+            }
+            escreva("\\n")
+        }
+        
+        // Calculando as diagonais
+        para (inteiro i = 0; i < 4; i++) {
+            soma_principal = soma_principal + matriz[i][i]
+            soma_secundaria = soma_secundaria + matriz[i][3 - i]
+        }
+        
+        escreva("\\n=== RESULTADOS ===\\n")
+        escreva("Diagonal principal: ")
+        para (inteiro i = 0; i < 4; i++) {
+            escreva(matriz[i][i], " ")
+        }
+        escreva("\\nSoma diagonal principal: ", soma_principal)
+        
+        escreva("\\n\\nDiagonal secundária: ")
+        para (inteiro i = 0; i < 4; i++) {
+            escreva(matriz[i][3 - i], " ")
+        }
+        escreva("\\nSoma diagonal secundária: ", soma_secundaria)
+    }
+}`,
+                    explanation: "Diagonal principal: elementos onde linha = coluna [i][i]. Diagonal secundária: [i][n-1-i].",
+                    difficulty: "dificil",
+                    points: 70
+                },
+                {
+                    question: "Sistema de Cadastro com Vetores Paralelos",
+                    content: "Crie um sistema para cadastrar 3 pessoas (nome, idade, salário) com busca:",
+                    hint: "Use 3 vetores paralelos. Mesmo índice representa a mesma pessoa nos 3 vetores.",
+                    answer: "Sistema de Cadastro Avançado",
+                    solution: `programa {
+    cadeia nomes[3]
+    inteiro idades[3]
+    real salarios[3]
+    inteiro total_cadastros = 0
+    
+    funcao cadastrar_pessoa() {
+        se (total_cadastros < 3) {
+            escreva("\\n=== CADASTRO DE PESSOA ===\\n")
+            escreva("Nome: ")
+            leia(nomes[total_cadastros])
+            escreva("Idade: ")
+            leia(idades[total_cadastros])
+            escreva("Salário: R$ ")
+            leia(salarios[total_cadastros])
+            
+            total_cadastros++
+            escreva("\\n✅ Pessoa cadastrada com sucesso!")
+        } senao {
+            escreva("\\n❌ Limite de cadastros atingido (máximo 3)!")
+        }
+    }
+    
+    funcao listar_pessoas() {
+        se (total_cadastros == 0) {
+            escreva("\\n❌ Nenhuma pessoa cadastrada!")
+            retorne
+        }
+        
+        escreva("\\n=== LISTA DE PESSOAS CADASTRADAS ===\\n")
+        para (inteiro i = 0; i < total_cadastros; i++) {
+            escreva("Pessoa ", i + 1, ":\\n")
+            escreva("  Nome: ", nomes[i], "\\n")
+            escreva("  Idade: ", idades[i], " anos\\n")
+            escreva("  Salário: R$ ", salarios[i], "\\n\\n")
+        }
+    }
+    
+    funcao buscar_pessoa() {
+        se (total_cadastros == 0) {
+            escreva("\\n❌ Nenhuma pessoa cadastrada!")
+            retorne
+        }
+        
+        cadeia nome_busca
+        logico encontrado = falso
+        
+        escreva("\\nDigite o nome a buscar: ")
+        leia(nome_busca)
+        
+        para (inteiro i = 0; i < total_cadastros; i++) {
+            se (nomes[i] == nome_busca) {
+                escreva("\\n=== PESSOA ENCONTRADA ===\\n")
+                escreva("Nome: ", nomes[i], "\\n")
+                escreva("Idade: ", idades[i], " anos\\n")
+                escreva("Salário: R$ ", salarios[i], "\\n")
+                encontrado = verdadeiro
+                pare
+            }
+        }
+        
+        se (nao encontrado) {
+            escreva("\\n❌ Pessoa não encontrada!")
+        }
+    }
+    
+    funcao inicio() {
+        inteiro opcao
+        
+        faca {
+            escreva("\\n=== SISTEMA DE CADASTRO ===\\n")
+            escreva("1 - Cadastrar pessoa\\n")
+            escreva("2 - Listar pessoas\\n")
+            escreva("3 - Buscar pessoa\\n")
+            escreva("4 - Estatísticas\\n")
+            escreva("0 - Sair\\n")
+            escreva("\\nEscolha uma opção: ")
+            leia(opcao)
+            
+            escolha (opcao) {
+                caso 1: cadastrar_pessoa() pare
+                caso 2: listar_pessoas() pare
+                caso 3: buscar_pessoa() pare
+                caso 4: 
+                    se (total_cadastros > 0) {
+                        real media_idade = 0, media_salario = 0
+                        para (inteiro i = 0; i < total_cadastros; i++) {
+                            media_idade = media_idade + idades[i]
+                            media_salario = media_salario + salarios[i]
+                        }
+                        media_idade = media_idade / total_cadastros
+                        media_salario = media_salario / total_cadastros
+                        
+                        escreva("\\n=== ESTATÍSTICAS ===\\n")
+                        escreva("Total de pessoas: ", total_cadastros, "\\n")
+                        escreva("Média de idade: ", media_idade, " anos\\n")
+                        escreva("Média salarial: R$ ", media_salario, "\\n")
+                    } senao {
+                        escreva("\\n❌ Nenhuma pessoa cadastrada!")
+                    }
+                    pare
+                caso 0: escreva("\\n👋 Saindo do sistema...") pare
+                caso contrario: escreva("\\n❌ Opção inválida!")
+            }
+        } enquanto (opcao != 0)
+    }
+}`,
+                    explanation: "Vetores paralelos mantêm dados relacionados no mesmo índice. Use funções para modularizar o código.",
+                    difficulty: "dificil",
+                    points: 90
+                },
+                {
+                    question: "Jogo da Adivinhação Avançado",
+                    content: "Crie um jogo onde o computador 'pensa' um número e o usuário tenta adivinhar:",
+                    hint: "Use número aleatório, contador de tentativas, dicas de 'maior' ou 'menor'.",
+                    answer: "Jogo de Adivinhação",
+                    solution: `programa {
+    funcao inteiro gerar_numero_aleatorio(inteiro min, inteiro max) {
+        // Simulação de número aleatório (em implementação real usaria função específica)
+        inteiro seed = 17 // Valor fixo para demonstração
+        retorne (seed % (max - min + 1)) + min
+    }
+    
+    funcao inicio() {
+        inteiro numero_secreto, palpite, tentativas = 0, max_tentativas = 7
+        inteiro min_range = 1, max_range = 100
+        logico acertou = falso
+        
+        numero_secreto = gerar_numero_aleatorio(1, 100)
+        
+        escreva("=== JOGO DA ADIVINHAÇÃO ===\\n")
+        escreva("Pensei em um número entre 1 e 100!\\n")
+        escreva("Você tem ", max_tentativas, " tentativas para acertar.\\n")
+        
+        enquanto (tentativas < max_tentativas e nao acertou) {
+            tentativas++
+            escreva("\\nTentativa ", tentativas, "/", max_tentativas)
+            escreva("\\nRange atual: ", min_range, " a ", max_range)
+            escreva("\\nSeu palpite: ")
+            leia(palpite)
+            
+            se (palpite == numero_secreto) {
+                acertou = verdadeiro
+                escreva("\\n🎉 PARABÉNS! Você acertou!")
+                escreva("\\nO número era ", numero_secreto)
+                escreva("\\nVocê precisou de ", tentativas, " tentativas.")
+                
+                se (tentativas <= 3) {
+                    escreva("\\n⭐ Excelente! Você é um expert!")
+                } senao se (tentativas <= 5) {
+                    escreva("\\n👍 Muito bom! Bom raciocínio!")
+                } senao {
+                    escreva("\\n👌 Conseguiu! Continue praticando!")
+                }
+            } senao se (palpite < numero_secreto) {
+                escreva("\\n📈 O número é MAIOR que ", palpite)
+                min_range = palpite + 1
+            } senao {
+                escreva("\\n📉 O número é MENOR que ", palpite)
+                max_range = palpite - 1
+            }
+            
+            se (nao acertou e tentativas < max_tentativas) {
+                inteiro restantes = max_tentativas - tentativas
+                escreva("\\nTentativas restantes: ", restantes)
+            }
+        }
+        
+        se (nao acertou) {
+            escreva("\\n😞 Que pena! Suas tentativas acabaram.")
+            escreva("\\nO número era ", numero_secreto)
+            escreva("\\nTente novamente!")
+        }
+        
+        escreva("\\n\\nObrigado por jogar! 🎮")
+    }
+}`,
+                    explanation: "Jogos combinam lógica, controle de fluxo e interação. Use ranges dinâmicos para dar dicas melhores ao jogador.",
+                    difficulty: "dificil",
+                    points: 85
+                },
+                {
+                    question: "Calculadora Científica com Funções",
+                    content: "Crie uma calculadora com operações básicas e avançadas (potência, raiz, fatorial):",
+                    hint: "Use funções separadas para cada operação. Implemente menu com múltiplas opções.",
+                    answer: "Calculadora Científica",
+                    solution: `programa {
+    funcao real potencia(real base, inteiro expoente) {
+        real resultado = 1.0
+        para (inteiro i = 0; i < expoente; i++) {
+            resultado = resultado * base
+        }
+        retorne resultado
+    }
+    
+    funcao real raiz_quadrada(real numero) {
+        // Método de aproximação (Newton-Raphson simplificado)
+        real aproximacao = numero / 2
+        para (inteiro i = 0; i < 10; i++) {
+            aproximacao = (aproximacao + numero / aproximacao) / 2
+        }
+        retorne aproximacao
+    }
+    
+    funcao inteiro fatorial(inteiro n) {
+        se (n <= 1) {
+            retorne 1
+        } senao {
+            retorne n * fatorial(n - 1)
+        }
+    }
+    
+    funcao inicio() {
+        inteiro opcao
+        real num1, num2, resultado
+        inteiro num_int
+        
+        faca {
+            escreva("\\n=== CALCULADORA CIENTÍFICA ===\\n")
+            escreva("1 - Soma\\n")
+            escreva("2 - Subtração\\n")
+            escreva("3 - Multiplicação\\n")
+            escreva("4 - Divisão\\n")
+            escreva("5 - Potência\\n")
+            escreva("6 - Raiz Quadrada\\n")
+            escreva("7 - Fatorial\\n")
+            escreva("8 - Porcentagem\\n")
+            escreva("0 - Sair\\n")
+            escreva("\\nEscolha uma operação: ")
+            leia(opcao)
+            
+            escolha (opcao) {
+                caso 1:
+                    escreva("Digite o primeiro número: ")
+                    leia(num1)
+                    escreva("Digite o segundo número: ")
+                    leia(num2)
+                    resultado = num1 + num2
+                    escreva("Resultado: ", num1, " + ", num2, " = ", resultado)
+                    pare
+                    
+                caso 2:
+                    escreva("Digite o primeiro número: ")
+                    leia(num1)
+                    escreva("Digite o segundo número: ")
+                    leia(num2)
+                    resultado = num1 - num2
+                    escreva("Resultado: ", num1, " - ", num2, " = ", resultado)
+                    pare
+                    
+                caso 3:
+                    escreva("Digite o primeiro número: ")
+                    leia(num1)
+                    escreva("Digite o segundo número: ")
+                    leia(num2)
+                    resultado = num1 * num2
+                    escreva("Resultado: ", num1, " × ", num2, " = ", resultado)
+                    pare
+                    
+                caso 4:
+                    escreva("Digite o dividendo: ")
+                    leia(num1)
+                    escreva("Digite o divisor: ")
+                    leia(num2)
+                    se (num2 != 0) {
+                        resultado = num1 / num2
+                        escreva("Resultado: ", num1, " ÷ ", num2, " = ", resultado)
+                    } senao {
+                        escreva("❌ Erro: Divisão por zero!")
+                    }
+                    pare
+                    
+                caso 5:
+                    escreva("Digite a base: ")
+                    leia(num1)
+                    escreva("Digite o expoente: ")
+                    leia(num_int)
+                    resultado = potencia(num1, num_int)
+                    escreva("Resultado: ", num1, "^", num_int, " = ", resultado)
+                    pare
+                    
+                caso 6:
+                    escreva("Digite o número: ")
+                    leia(num1)
+                    se (num1 >= 0) {
+                        resultado = raiz_quadrada(num1)
+                        escreva("Resultado: √", num1, " = ", resultado)
+                    } senao {
+                        escreva("❌ Erro: Raiz de número negativo!")
+                    }
+                    pare
+                    
+                caso 7:
+                    escreva("Digite um número inteiro: ")
+                    leia(num_int)
+                    se (num_int >= 0) {
+                        resultado = fatorial(num_int)
+                        escreva("Resultado: ", num_int, "! = ", resultado)
+                    } senao {
+                        escreva("❌ Erro: Fatorial de número negativo!")
+                    }
+                    pare
+                    
+                caso 8:
+                    escreva("Digite o valor: ")
+                    leia(num1)
+                    escreva("Digite a porcentagem: ")
+                    leia(num2)
+                    resultado = (num1 * num2) / 100
+                    escreva("Resultado: ", num2, "% de ", num1, " = ", resultado)
+                    pare
+                    
+                caso 0:
+                    escreva("\\n👋 Calculadora encerrada!")
+                    pare
+                    
+                caso contrario:
+                    escreva("❌ Opção inválida!")
+            }
+        } enquanto (opcao != 0)
+    }
+}`,
+                    explanation: "Calculadoras científicas modularizam operações em funções específicas. Sempre valide entradas para evitar erros matemáticos.",
+                    difficulty: "dificil",
+                    points: 95
+                },
+                {
+                    question: "Sistema de Notas Completo com Estatísticas",
+                    content: "Sistema completo: cadastrar alunos, notas, calcular médias, aprovações e estatísticas da turma:",
+                    hint: "Use vetores paralelos para alunos e notas. Implemente funções para cada funcionalidade.",
+                    answer: "Sistema Acadêmico Completo",
+                    solution: `programa {
+    cadeia nomes[5]
+    real notas1[5], notas2[5], notas3[5], medias[5]
+    inteiro total_alunos = 0
+    
+    funcao cadastrar_aluno() {
+        se (total_alunos < 5) {
+            escreva("\\n=== CADASTRO DE ALUNO ===\\n")
+            escreva("Nome do aluno: ")
+            leia(nomes[total_alunos])
+            
+            escreva("Nota 1: ")
+            leia(notas1[total_alunos])
+            escreva("Nota 2: ")
+            leia(notas2[total_alunos])
+            escreva("Nota 3: ")
+            leia(notas3[total_alunos])
+            
+            medias[total_alunos] = (notas1[total_alunos] + notas2[total_alunos] + notas3[total_alunos]) / 3
+            
+            total_alunos++
+            escreva("\\n✅ Aluno cadastrado com sucesso!")
+        } senao {
+            escreva("\\n❌ Limite de alunos atingido (máximo 5)!")
+        }
+    }
+    
+    funcao exibir_boletim() {
+        se (total_alunos == 0) {
+            escreva("\\n❌ Nenhum aluno cadastrado!")
+            retorne
+        }
+        
+        escreva("\\n=== BOLETIM DA TURMA ===\\n")
+        para (inteiro i = 0; i < total_alunos; i++) {
+            escreva("\\nAluno: ", nomes[i], "\\n")
+            escreva("Nota 1: ", notas1[i], "\\n")
+            escreva("Nota 2: ", notas2[i], "\\n")
+            escreva("Nota 3: ", notas3[i], "\\n")
+            escreva("Média: ", medias[i], "\\n")
+            
+            se (medias[i] >= 7.0) {
+                escreva("Situação: ✅ APROVADO\\n")
+            } senao se (medias[i] >= 5.0) {
+                escreva("Situação: ⚠️ RECUPERAÇÃO\\n")
+            } senao {
+                escreva("Situação: ❌ REPROVADO\\n")
+            }
+            escreva("------------------------")
+        }
+    }
+    
+    funcao estatisticas_turma() {
+        se (total_alunos == 0) {
+            escreva("\\n❌ Nenhum aluno cadastrado!")
+            retorne
+        }
+        
+        real soma_medias = 0, maior_media = medias[0], menor_media = medias[0]
+        inteiro aprovados = 0, recuperacao = 0, reprovados = 0
+        cadeia melhor_aluno = nomes[0], pior_aluno = nomes[0]
+        
+        para (inteiro i = 0; i < total_alunos; i++) {
+            soma_medias = soma_medias + medias[i]
+            
+            se (medias[i] > maior_media) {
+                maior_media = medias[i]
+                melhor_aluno = nomes[i]
+            }
+            
+            se (medias[i] < menor_media) {
+                menor_media = medias[i]
+                pior_aluno = nomes[i]
+            }
+            
+            se (medias[i] >= 7.0) {
+                aprovados++
+            } senao se (medias[i] >= 5.0) {
+                recuperacao++
+            } senao {
+                reprovados++
+            }
+        }
+        
+        real media_turma = soma_medias / total_alunos
+        
+        escreva("\\n=== ESTATÍSTICAS DA TURMA ===\\n")
+        escreva("Total de alunos: ", total_alunos, "\\n")
+        escreva("Média da turma: ", media_turma, "\\n")
+        escreva("\\nSituação dos alunos:\\n")
+        escreva("✅ Aprovados: ", aprovados, " (", (aprovados * 100) / total_alunos, "%)\\n")
+        escreva("⚠️ Recuperação: ", recuperacao, " (", (recuperacao * 100) / total_alunos, "%)\\n")
+        escreva("❌ Reprovados: ", reprovados, " (", (reprovados * 100) / total_alunos, "%)\\n")
+        escreva("\\nDestaques:\\n")
+        escreva("🏆 Melhor aluno: ", melhor_aluno, " (", maior_media, ")\\n")
+        escreva("📚 Precisa de ajuda: ", pior_aluno, " (", menor_media, ")\\n")
+    }
+    
+    funcao inicio() {
+        inteiro opcao
+        
+        faca {
+            escreva("\\n=== SISTEMA ACADÊMICO ===\\n")
+            escreva("1 - Cadastrar aluno\\n")
+            escreva("2 - Exibir boletim\\n")
+            escreva("3 - Estatísticas da turma\\n")
+            escreva("4 - Buscar aluno\\n")
+            escreva("0 - Sair\\n")
+            escreva("\\nEscolha uma opção: ")
+            leia(opcao)
+            
+            escolha (opcao) {
+                caso 1: cadastrar_aluno() pare
+                caso 2: exibir_boletim() pare
+                caso 3: estatisticas_turma() pare
+                caso 4:
+                    se (total_alunos == 0) {
+                        escreva("\\n❌ Nenhum aluno cadastrado!")
+                    } senao {
+                        cadeia nome_busca
+                        logico encontrado = falso
+                        
+                        escreva("\\nDigite o nome do aluno: ")
+                        leia(nome_busca)
+                        
+                        para (inteiro i = 0; i < total_alunos; i++) {
+                            se (nomes[i] == nome_busca) {
+                                escreva("\\n=== DADOS DO ALUNO ===\\n")
+                                escreva("Nome: ", nomes[i], "\\n")
+                                escreva("Notas: ", notas1[i], " | ", notas2[i], " | ", notas3[i], "\\n")
+                                escreva("Média: ", medias[i], "\\n")
+                                
+                                se (medias[i] >= 7.0) {
+                                    escreva("Situação: ✅ APROVADO")
+                                } senao se (medias[i] >= 5.0) {
+                                    escreva("Situação: ⚠️ RECUPERAÇÃO")
+                                } senao {
+                                    escreva("Situação: ❌ REPROVADO")
+                                }
+                                encontrado = verdadeiro
+                                pare
+                            }
+                        }
+                        
+                        se (nao encontrado) {
+                            escreva("\\n❌ Aluno não encontrado!")
+                        }
+                    }
+                    pare
+                caso 0: escreva("\\n👋 Sistema encerrado!") pare
+                caso contrario: escreva("\\n❌ Opção inválida!")
+            }
+        } enquanto (opcao != 0)
+    }
+}`,
+                    explanation: "Sistemas completos integram múltiplas funcionalidades. Use funções para organizar o código e facilitar manutenção.",
+                    difficulty: "dificil",
+                    points: 100
+                }
+            ]
+        };
+
+        let currentLevel = 'facil';
+        let currentCardIndex = 0;
+        let isFlipped = false;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let completedCards = new Set();
+        let totalScore = 0;
+        let currentStreak = 0;
+        let showingHint = false;
+
+        // DOM Elements
+        const flashcard = document.getElementById('flashcard');
+        const frontTitle = document.getElementById('front-title');
+        const frontContent = document.getElementById('front-content');
+        const backTitle = document.getElementById('back-title');
+        const backContent = document.getElementById('back-content');
+        const difficultyBadge = document.getElementById('difficulty-badge');
+        const backDifficultyBadge = document.getElementById('back-difficulty-badge');
+        const flipBtn = document.getElementById('flip-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const correctBtn = document.getElementById('correct-btn');
+        const wrongBtn = document.getElementById('wrong-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const currentCardSpan = document.getElementById('current-card');
+        const correctCountSpan = document.getElementById('correct-count');
+        const wrongCountSpan = document.getElementById('wrong-count');
+        const accuracySpan = document.getElementById('accuracy');
+        const progressText = document.getElementById('progress-text');
+        const progressFill = document.getElementById('progress-fill');
+        const totalScoreSpan = document.getElementById('total-score');
+        const streakSpan = document.getElementById('streak');
+        const completionMessage = document.getElementById('completion-message');
+        const completionText = document.getElementById('completion-text');
+        const finalScore = document.getElementById('final-score');
+
+        // Level buttons
+        const levelButtons = document.querySelectorAll('.level-btn');
+
+        function getCurrentCards() {
+            return flashcards[currentLevel];
+        }
+
+        function loadCard(index) {
+            const cards = getCurrentCards();
+            const card = cards[index];
+            
+            frontTitle.textContent = card.question;
+            frontContent.innerHTML = card.content;
+            backTitle.textContent = card.answer;
+            
+            let backContentHTML = `<div class="code-block">${card.solution}</div>`;
+            if (card.explanation) {
+                backContentHTML += `<div class="explanation"><strong>💡 Explicação:</strong><br>${card.explanation}</div>`;
+            }
+            backContent.innerHTML = backContentHTML;
+            
+            // Set difficulty badges
+            const difficultyText = card.difficulty.charAt(0).toUpperCase() + card.difficulty.slice(1);
+            difficultyBadge.textContent = difficultyText;
+            difficultyBadge.className = `difficulty-badge difficulty-${card.difficulty}`;
+            backDifficultyBadge.textContent = difficultyText;
+            backDifficultyBadge.className = `difficulty-badge difficulty-${card.difficulty}`;
+            
+            currentCardSpan.textContent = index + 1;
+            updateProgress();
+            updateButtons();
+            showingHint = false;
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            flashcard.classList.toggle('flipped');
+            
+            if (isFlipped) {
+                flipBtn.textContent = '🔄 Voltar';
+                correctBtn.disabled = false;
+                wrongBtn.disabled = false;
+            } else {
+                flipBtn.textContent = '🔄 Virar Carta';
+                correctBtn.disabled = true;
+                wrongBtn.disabled = true;
+            }
+        }
+
+        function showHint() {
+            const cards = getCurrentCards();
+            const card = cards[currentCardIndex];
+            
+            if (!showingHint && card.hint) {
+                const hintHTML = `<div class="hint-section"><strong>💡 Dica:</strong><br>${card.hint}</div>`;
+                frontContent.innerHTML = card.content + hintHTML;
+                showingHint = true;
+                hintBtn.textContent = '🚫 Ocultar Dica';
+            } else {
+                frontContent.innerHTML = card.content;
+                showingHint = false;
+                hintBtn.textContent = '💡 Dica';
+            }
+        }
+
+        function markCorrect() {
+            const cards = getCurrentCards();
+            const card = cards[currentCardIndex];
+            
+            correctAnswers++;
+            currentStreak++;
+            
+            // Calculate points with streak bonus
+            let points = card.points;
+            if (currentStreak >= 3) {
+                points = Math.floor(points * 1.5); // 50% bonus for streak
+            }
+            
+            totalScore += points;
+            completedCards.add(`${currentLevel}-${currentCardIndex}`);
+            
+            updateStats();
+            updateProgress();
+            nextCard();
+        }
+
+        function markWrong() {
+            wrongAnswers++;
+            currentStreak = 0; // Reset streak
+            updateStats();
+            nextCard();
+        }
+
+        function nextCard() {
+            const cards = getCurrentCards();
+            if (currentCardIndex < cards.length - 1) {
+                currentCardIndex++;
+                resetCard();
+                loadCard(currentCardIndex);
+            } else {
+                checkCompletion();
+            }
+        }
+
+        function prevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                resetCard();
+                loadCard(currentCardIndex);
+            }
+        }
+
+        function resetCard() {
+            if (isFlipped) {
+                flashcard.classList.remove('flipped');
+                isFlipped = false;
+                flipBtn.textContent = '🔄 Virar Carta';
+                correctBtn.disabled = true;
+                wrongBtn.disabled = true;
+            }
+            showingHint = false;
+            hintBtn.textContent = '💡 Dica';
+        }
+
+        function shuffleCards() {
+            const cards = getCurrentCards();
+            // Fisher-Yates shuffle
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            currentCardIndex = 0;
+            resetCard();
+            loadCard(currentCardIndex);
+        }
+
+        function updateButtons() {
+            const cards = getCurrentCards();
+            prevBtn.disabled = currentCardIndex === 0;
+            nextBtn.disabled = currentCardIndex === cards.length - 1;
+            
+            const card = cards[currentCardIndex];
+            hintBtn.style.display = card.hint ? 'inline-block' : 'none';
+        }
+
+        function updateStats() {
+            correctCountSpan.textContent = correctAnswers;
+            wrongCountSpan.textContent = wrongAnswers;
+            totalScoreSpan.textContent = totalScore;
+            streakSpan.textContent = currentStreak;
+            
+            const total = correctAnswers + wrongAnswers;
+            const accuracy = total > 0 ? Math.round((correctAnswers / total) * 100) : 0;
+            accuracySpan.textContent = accuracy + '%';
+        }
+
+        function updateProgress() {
+            const cards = getCurrentCards();
+            const levelCompleted = Array.from(completedCards).filter(id => id.startsWith(currentLevel)).length;
+            const total = cards.length;
+            const percentage = (levelCompleted / total) * 100;
+            
+            progressText.textContent = `${levelCompleted}/${total} concluídos`;
+            progressFill.style.width = `${percentage}%`;
+        }
+
+        function checkCompletion() {
+            const cards = getCurrentCards();
+            const levelCompleted = Array.from(completedCards).filter(id => id.startsWith(currentLevel)).length;
+            
+            if (levelCompleted === cards.length) {
+                completionText.textContent = `Parabéns! Você dominou o nível ${currentLevel.toUpperCase()}!`;
+                finalScore.textContent = totalScore;
+                completionMessage.style.display = 'block';
+            }
+        }
+
+        function switchLevel(level) {
+            currentLevel = level;
+            currentCardIndex = 0;
+            
+            // Update active button
+            levelButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.level === level) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            resetCard();
+            loadCard(currentCardIndex);
+            completionMessage.style.display = 'none';
+        }
+
+        // Event Listeners
+        flipBtn.addEventListener('click', flipCard);
+        hintBtn.addEventListener('click', showHint);
+        correctBtn.addEventListener('click', markCorrect);
+        wrongBtn.addEventListener('click', markWrong);
+        prevBtn.addEventListener('click', prevCard);
+        nextBtn.addEventListener('click', nextCard);
+        shuffleBtn.addEventListener('click', shuffleCards);
+
+        levelButtons.forEach(btn => {
+            btn.addEventListener('click', () => switchLevel(btn.dataset.level));
+        });
+
+        flashcard.addEventListener('click', (e) => {
+            if (!e.target.closest('.btn')) {
+                flipCard();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case ' ':
+                case 'Enter':
+                    e.preventDefault();
+                    flipCard();
+                    break;
+                case 'ArrowRight':
+                    if (currentCardIndex < getCurrentCards().length - 1) nextCard();
+                    break;
+                case 'ArrowLeft':
+                    if (currentCardIndex > 0) prevCard();
+                    break;
+                case '1':
+                    if (isFlipped) markCorrect();
+                    break;
+                case '2':
+                    if (isFlipped) markWrong();
+                    break;
+                case 'h':
+                case 'H':
+                    showHint();
+                    break;
+            }
+        });
+
+        // Initialize
+        loadCard(0);
+        updateStats();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985532f61528f1cf',t:'MTc1ODkxNTI3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
